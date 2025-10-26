@@ -1,5 +1,7 @@
 import _ from 'lodash';
 import type { Core } from '@strapi/types';
+import auditLogsController from '../../core-api/controller/audit-logs';
+
 
 const createRouteScopeGenerator = (namespace: string) => (route: Core.RouteInput) => {
   const prefix = namespace.endsWith('::') ? namespace : `${namespace}.`;
@@ -19,6 +21,7 @@ const createRouteScopeGenerator = (namespace: string) => (route: Core.RouteInput
  * Register all routes
  */
 export default (strapi: Core.Strapi) => {
+  strapi.get('controllers').set('audit-logs', auditLogsController);
   registerAdminRoutes(strapi);
   registerAPIRoutes(strapi);
   registerPluginRoutes(strapi);
@@ -110,6 +113,24 @@ const registerAPIRoutes = (strapi: Core.Strapi) => {
       return strapi.server.routes(router);
     });
   }
+
+
+  strapi.server.routes({
+    type: 'content-api',
+    routes: [
+      {
+        method: 'GET',
+        path: '/audit-logs',
+        handler: 'audit-logs.find',
+        config: {
+          auth: {
+            scope: ['read_audit_logs']
+          },
+        },
+      },
+    ],
+  });
+
 };
 
 const instantiateRouterInputs = (
